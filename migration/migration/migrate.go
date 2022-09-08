@@ -9,9 +9,13 @@ import (
 	"video/migration/svc"
 )
 
+const (
+	TotalPage = 10
+)
+
 type SyncJob interface {
 	DealAndInsert(ctx context.Context, date any) error
-	Read(ctx context.Context) (any, error)
+	Read(ctx context.Context, page int64) (any, error)
 }
 
 type SyncManager struct {
@@ -64,15 +68,17 @@ func (sm *SyncManager) RunSyncWorker(ctx context.Context) {
 }
 
 func (sm *SyncManager) RunOneJob(ctx context.Context, job SyncJob) {
-	data, err := job.Read(ctx)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-	err = job.DealAndInsert(ctx, data)
-	if err != nil {
-		log.Println(err.Error())
-		return
+	for i := 1; i <= TotalPage; i++ {
+		data, err := job.Read(ctx, int64(i))
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
+		err = job.DealAndInsert(ctx, data)
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
 	}
 }
 

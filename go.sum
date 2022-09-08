@@ -345,8 +345,6 @@ github.com/pinguo-icc/go-lib/v2 v2.1.7 h1:zWVGrbEUFMPXKZMizqUwlGnHX7TGgXshgB+i+1
 github.com/pinguo-icc/go-lib/v2 v2.1.7/go.mod h1:qajpvSw2uWYuxV34ueoOS7IwyW9WrLsI+t7Bf+xTP6o=
 github.com/pinguo-icc/kratos-library/v2 v2.1.13 h1:/0FEmftyEroQVeWV6IMHVOEepWGDPisPfxpck3QQl6c=
 github.com/pinguo-icc/kratos-library/v2 v2.1.13/go.mod h1:zEHcuk8PiZtB6WKWCYPYEFGS+p75BdC5N+WYOYkYeyQ=
-github.com/pinguo-icc/transaction-svc v0.0.0-20220824012323-a86cb2de179b h1:Zmv6zoh0BVwwB+0RuwJjGbK8UJblj9ITqRF3zWCuN6k=
-github.com/pinguo-icc/transaction-svc v0.0.0-20220824012323-a86cb2de179b/go.mod h1:IBrZ9RMds74rzBqi/fCh59C/uts1GYhf1VPJawSWYbQ=
 github.com/pinguo-icc/transaction-svc v0.0.0-20220830013903-81ccbeef2ec6 h1:oIxHPYd0RwYr7oWvWmyKzY+4ndyjsZWVcX7W9ejkJyw=
 github.com/pinguo-icc/transaction-svc v0.0.0-20220830013903-81ccbeef2ec6/go.mod h1:IBrZ9RMds74rzBqi/fCh59C/uts1GYhf1VPJawSWYbQ=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

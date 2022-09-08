@@ -4,8 +4,6 @@ import (
 	"context"
 	"video/migration/db"
 	"video/migration/models"
-
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type SnapshotJob struct {
@@ -40,7 +38,7 @@ func NewSnapshotJob(db *db.DB) *UserJob {
 func (sj *SnapshotJob) DealAndInsert(ctx context.Context, data any) error {
 	col := sj.TranDb.Collection(sj.UserSnapshotColl)
 	if data, ok := data.([]interface{}); ok {
-		_, err := col.InsertMany(ctx, data, options.InsertMany())
+		_, err := col.InsertMany(ctx, data)
 		if err != nil {
 			return err
 		}

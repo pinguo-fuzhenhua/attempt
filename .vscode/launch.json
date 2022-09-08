@@ -34,6 +34,7 @@
                 // "-transactionDsn=mongodb://root:CameMogdb2020%40@dds-bp1ffd2af506b7e41535-pub.mongodb.rds.aliyuncs.com:3717,dds-bp1ffd2af506b7e42884-pub.mongodb.rds.aliyuncs.com:3717/admin?authSource=admin&replicaSet=mgset-34049251&readPreference=primary&appname=MongoDB%20Compass&ssl=false",
                 "-timeout=2",
                 "-transactionDsn=mongodb://localhost:27017",
+                "-transactionDsn=mongodb://root:CameMogdb2020%40@dds-bp1ffd2af506b7e41535-pub.mongodb.rds.aliyuncs.com:3717,dds-bp1ffd2af506b7e42884-pub.mongodb.rds.aliyuncs.com:3717/admin?authSource=admin&replicaSet=mgset-34049251&readPreference=primary&appname=MongoDB%20Compass&ssl=false",
                 "-transactionSvcAddr=0.0.0.0:9001"
             ]
         }

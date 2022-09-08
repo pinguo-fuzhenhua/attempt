@@ -3,12 +3,19 @@ package job
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
 	"video/migration/db"
 	"video/migration/models"
 
 	tapi "github.com/pinguo-icc/transaction-svc/api"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+const (
+	PageSize  = 200
+	TotalPage = 100
 )
 
 type RecordJob struct {
@@ -29,6 +36,7 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data any) error {
 	trans, _ := data.([]*models.BankAccountTransaction)
 	for i, v := range trans {
 		fmt.Println(i)
+		time.Sleep(time.Millisecond * 150)
 		switch v.Operation {
 		case models.Sale:
 			rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{
@@ -55,14 +63,14 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data any) error {
 				ForceCreatedAt:        v.CreatedAt.Unix(),
 			})
 		case models.TransferOut:
-			if v.Amount < 0 {
+			if v.Amount > 0 {
 				continue
 			}
 			col := rj.WfDb.Collection(rj.LogColl)
 			counterPart := &models.Log{}
-			err := col.FindOne(ctx, models.M{"transID": v.TransID}).Decode(counterPart)
+			err := col.FindOne(ctx, models.M{"transID": v.TransID, "amount": models.M{"$gt": 0}}).Decode(counterPart)
 			if err != nil {
-				return err
+				log.Println(err)
 			}
 			rj.tranClient.TransferOut(ctx, &tapi.TransferOutRequest{
 				Scope:                 v.Scope,
@@ -81,7 +89,7 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data any) error {
 	return nil
 }
 
-func (wfj *RecordJob) Read(ctx context.Context) (any, error) {
+func (wfj *RecordJob) Read(ctx context.Context, page int64) (any, error) {
 	col := wfj.WfDb.Collection(wfj.LogColl)
 	logs := []*models.Log{}
 	filter := models.M{
@@ -89,7 +97,7 @@ func (wfj *RecordJob) Read(ctx context.Context) (any, error) {
 			"$nin": []string{"initAccount"},
 		},
 	}
-	cur, err := col.Find(ctx, filter, options.Find().SetSort(bson.D{bson.E{Key: "_id", Value: 1}}).SetLimit(5000))
+	cur, err := col.Find(ctx, filter, options.Find().SetSort(bson.D{bson.E{Key: "_id", Value: 1}}).SetSkip((page-1)*PageSize).SetLimit(PageSize))
 	if err != nil {
 		return nil, err
 	}

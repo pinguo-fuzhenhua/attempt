@@ -17,7 +17,7 @@ func main() {
 	db := db.NewDb("waterfalls", "transaction-svc")
 	clientSet, cancel := svc.NewClientSet(copt)
 	sm := migration.NewSyncManager(db, clientSet)
-	ctx, close := context.WithTimeout(context.Background(), time.Second*30)
+	ctx, close := context.WithTimeout(context.Background(), time.Second*1000)
 	sm.MainCancel = cancel
 	defer func() {
 		sm.StopSyncWorker()

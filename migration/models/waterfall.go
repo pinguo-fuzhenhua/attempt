@@ -60,7 +60,7 @@ func (l *Log) ToTransaction() *BankAccountTransaction {
 		},
 		BankType:  BankType(bankType),
 		Amount:    l.Amount,
-		Reason:    l.Comment,
+		Reason:    l.OpType,
 		Operation: BankAccountOperation(opType),
 		TransID:   l.TransID,
 	}
