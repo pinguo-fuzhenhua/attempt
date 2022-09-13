@@ -3,7 +3,7 @@ package svc
 import (
 	"context"
 	"log"
-	"video/migration/db"
+	"video/migrationv2/db"
 
 	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
 	tapi "github.com/pinguo-icc/transaction-svc/api"

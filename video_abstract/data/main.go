@@ -155,10 +155,6 @@ type AA struct {
 }
 
 func main() {
-	t := new(AA)
-	for _, v := range t.B {
-
-	}
 	a := os.Args
 	_ = a
 	o, err := initOptions(flag.NewFlagSet(os.Args[0], flag.ExitOnError), os.Args[1:]...)

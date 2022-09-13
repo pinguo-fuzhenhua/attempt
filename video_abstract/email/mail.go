@@ -16,5 +16,5 @@ func main() {
 	// }
 	a := struct{}{}
 	fmt.Printf("%p %v %T", &a, a, a)
-	fmt.Printf("c %T %v %p", c, c, &c)
+	// fmt.Printf("c %T %v %p", c, c, &c)
 }

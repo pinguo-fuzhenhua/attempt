@@ -24,13 +24,13 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/migration/main.go",//指定入口程序所在目录
+            "program": "${workspaceFolder}/migrationv2/main.go",//指定入口程序所在目录
             "showLog":true,
             "output": "${workspaceFolder}/bin/app",//指定可执行文件输出目录
             "env": {"GOLANG_PROTOBUF_REGISTRATION_CONFLICT":"ignore"},
             "args": [
-                "-waterfallDsn=mongodb://root:CameMogdb2020%40@dds-bp1ffd2af506b7e41535-pub.mongodb.rds.aliyuncs.com:3717,dds-bp1ffd2af506b7e42884-pub.mongodb.rds.aliyuncs.com:3717/admin?authSource=admin&replicaSet=mgset-34049251&readPreference=primary&appname=MongoDB%20Compass&ssl=false",
-                // "-waterfallDsn=mongodb://waterfalls:MEF2xxRxdscxN0xU=@dds-bp11c594ba0f78b41926-pub.mongodb.rds.aliyuncs.com:3717,dds-bp11c594ba0f78b42483-pub.mongodb.rds.aliyuncs.com:3717/admin?replicaSet=mgset-29230961",
+                // "-waterfallDsn=mongodb://root:CameMogdb2020%40@dds-bp1ffd2af506b7e41535-pub.mongodb.rds.aliyuncs.com:3717,dds-bp1ffd2af506b7e42884-pub.mongodb.rds.aliyuncs.com:3717/admin?authSource=admin&replicaSet=mgset-34049251&readPreference=primary&appname=MongoDB%20Compass&ssl=false",
+                "-waterfallDsn=mongodb://waterfalls:MEF2xxRxdscxN0xU=@dds-bp11c594ba0f78b41926-pub.mongodb.rds.aliyuncs.com:3717,dds-bp11c594ba0f78b42483-pub.mongodb.rds.aliyuncs.com:3717/admin?replicaSet=mgset-29230961",
                 // "-transactionDsn=mongodb://root:CameMogdb2020%40@dds-bp1ffd2af506b7e41535-pub.mongodb.rds.aliyuncs.com:3717,dds-bp1ffd2af506b7e42884-pub.mongodb.rds.aliyuncs.com:3717/admin?authSource=admin&replicaSet=mgset-34049251&readPreference=primary&appname=MongoDB%20Compass&ssl=false",
                 "-timeout=2",
                 "-transactionDsn=mongodb://localhost:27017",
