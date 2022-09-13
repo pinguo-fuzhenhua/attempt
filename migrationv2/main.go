@@ -14,9 +14,9 @@ func main() {
 	copt := db.InitConnOpt(flag.NewFlagSet(os.Args[0], flag.ExitOnError))
 	db.InitConnection(copt)
 	db := db.NewDb("waterfalls", "transaction-svc")
-	clientSet, cancel := svc.NewClientSet(copt)
+	clientSet, close := svc.NewClientSet(copt)
 	sm := migration.NewSyncManager(db, clientSet)
-	ctx, close := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	sm.MainCancel = cancel
 	defer func() {
 		sm.StopSyncWorker()
