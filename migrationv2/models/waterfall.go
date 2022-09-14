@@ -43,8 +43,6 @@ func (l *Log) ToTransaction() (*BankAccountTransaction, error) {
 		return nil, err
 	}
 
-	fmt.Println(bankType, opType, originalTransactionId)
-
 	return &BankAccountTransaction{
 		Transaction: &Transaction{
 			ID:                  l.ID,
