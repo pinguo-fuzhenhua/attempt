@@ -8,13 +8,16 @@ import (
 	"video/migrationv2/db"
 	"video/migrationv2/job"
 	pjob "video/migrationv2/job"
+	"video/migrationv2/models"
 	"video/migrationv2/svc"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type SyncJob interface {
 	DealAndInsert(ctx context.Context, date any) error
-	Read(ctx context.Context, page int64) (any, error)
-	Count(ctx context.Context) (int64, error)
+	Read(ctx context.Context, page int64, min, max models.ID) (any, error)
+	Count(ctx context.Context, min, max models.ID) (int64, error)
 }
 
 type SyncManager struct {
@@ -50,21 +53,32 @@ func (sm *SyncManager) RunSyncWorker(ctx context.Context) {
 }
 
 func (sm *SyncManager) RunOneJob(ctx context.Context, job SyncJob) {
-	count, err := job.Count(ctx)
+	ids := []models.ID{primitive.NilObjectID, primitive.NewObjectID()}
+	count, err := job.Count(ctx, ids[len(ids)-2], ids[len(ids)-1])
 	if err != nil {
 		log.Println(err)
+		panic(err)
 	}
-	for i := 0; i < int(math.Ceil(float64(count)/float64(pjob.PageSize))); i++ {
-		fmt.Println("******************************%d********%d*******%d**********************", i, i, i)
-		data, err := job.Read(ctx, int64(i))
-		if err != nil {
-			log.Println(err.Error())
-			return
+
+	for count != 0 {
+		for i := 0; i < int(math.Ceil(float64(count)/float64(pjob.PageSize))); i++ {
+			fmt.Println("*******************************************************************", i, i, i)
+			data, err := job.Read(ctx, int64(i), ids[len(ids)-2], ids[len(ids)-1])
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
+			err = job.DealAndInsert(ctx, data)
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
 		}
-		err = job.DealAndInsert(ctx, data)
+		ids = append(ids, primitive.NewObjectID())
+		count, err = job.Count(ctx, ids[len(ids)-2], ids[len(ids)-1])
 		if err != nil {
-			log.Println(err.Error())
-			return
+			log.Println(err)
+			panic(err)
 		}
 	}
 }

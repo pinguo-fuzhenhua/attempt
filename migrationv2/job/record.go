@@ -67,7 +67,7 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data any) error {
 			}
 			col := rj.WfDb.Collection(rj.LogColl)
 			counterPart := &models.Log{}
-			err := col.FindOne(ctx, models.M{"transID": v.TransID, "amount": models.M{"$gt": 0}}).Decode(counterPart)
+			err := col.FindOne(ctx, models.M{"dataChannel": "juice", "opType": "purchasePreset", "transID": v.TransID, "amount": models.M{"$gt": 0}}).Decode(counterPart)
 			if err != nil {
 				log.Println(err)
 			}
@@ -88,12 +88,16 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data any) error {
 	return nil
 }
 
-func (wfj *RecordJob) Read(ctx context.Context, page int64) (any, error) {
+func (wfj *RecordJob) Read(ctx context.Context, page int64, min, max models.ID) (any, error) {
 	col := wfj.WfDb.Collection(wfj.LogColl)
 	logs := []*models.Log{}
 	filter := models.M{
 		"opType": models.M{
 			"$nin": []string{"initAccount"},
+		},
+		"$and": models.A{
+			models.M{"_id": models.M{"$gte": min}},
+			models.M{"_id": models.M{"$lt": max}},
 		},
 	}
 	cur, err := col.Find(ctx, filter, options.Find().SetSort(bson.D{bson.E{Key: "_id", Value: 1}}).SetSkip(page*PageSize).SetLimit(PageSize))
@@ -106,7 +110,10 @@ func (wfj *RecordJob) Read(ctx context.Context, page int64) (any, error) {
 	}
 	res := []*models.BankAccountTransaction{}
 	for _, log := range logs {
-		transaction := log.ToTransaction()
+		transaction, err := log.ToTransaction()
+		if err != nil {
+			return nil, err
+		}
 		if transaction != nil {
 			res = append(res, transaction)
 		}
@@ -114,11 +121,15 @@ func (wfj *RecordJob) Read(ctx context.Context, page int64) (any, error) {
 	return res, err
 }
 
-func (wfj *RecordJob) Count(ctx context.Context) (int64, error) {
+func (wfj *RecordJob) Count(ctx context.Context, min, max models.ID) (int64, error) {
 	col := wfj.WfDb.Collection(wfj.LogColl)
 	filter := models.M{
 		"opType": models.M{
 			"$nin": []string{"initAccount"},
+		},
+		"$and": models.A{
+			models.M{"_id": models.M{"$gte": min}},
+			models.M{"_id": models.M{"$lt": max}},
 		},
 	}
 	count, err := col.CountDocuments(ctx, filter)

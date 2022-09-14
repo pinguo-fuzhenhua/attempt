@@ -3,6 +3,7 @@ package svc
 import (
 	"context"
 	"log"
+	"time"
 	"video/migrationv2/db"
 
 	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
@@ -34,6 +35,7 @@ func newConnection(addr string) (*grpc.ClientConn, error) {
 	conn, err := kgrpc.DialInsecure(
 		context.TODO(),
 		kgrpc.WithEndpoint(addr),
+		kgrpc.WithTimeout(60*time.Second),
 	)
 	if err != nil {
 		log.Fatalln(err.Error())
