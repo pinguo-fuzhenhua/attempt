@@ -7,6 +7,7 @@ import (
 	"video/migrationv2/db"
 
 	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
+	kierr "github.com/pinguo-icc/kratos-library/v2/ierr"
 	tapi "github.com/pinguo-icc/transaction-svc/api"
 	"google.golang.org/grpc"
 )
@@ -36,6 +37,9 @@ func newConnection(addr string) (*grpc.ClientConn, error) {
 		context.TODO(),
 		kgrpc.WithEndpoint(addr),
 		kgrpc.WithTimeout(60*time.Second),
+		kgrpc.WithMiddleware(
+			kierr.GRPCClientMiddleware(),
+		),
 	)
 	if err != nil {
 		log.Fatalln(err.Error())

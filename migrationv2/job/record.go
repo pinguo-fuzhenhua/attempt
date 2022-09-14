@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"log"
 
 	"video/migrationv2/db"
 	"video/migrationv2/models"
 
+	"github.com/pinguo-icc/go-base/v2/ierr"
 	tapi "github.com/pinguo-icc/transaction-svc/api"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -49,6 +51,10 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 				Comment:               v.Comment,
 				ForceCreatedAt:        v.CreatedAt.Unix(),
 			}); err != nil {
+				if ie, ok := ierr.FromError(err); ok && ie.SubCode == 300004 {
+					log.Println(ie.Reason)
+					continue
+				}
 				return err
 			}
 
@@ -64,6 +70,10 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 				Comment:               v.Comment,
 				ForceCreatedAt:        v.CreatedAt.Unix(),
 			}); err != nil {
+				if ie, ok := ierr.FromError(err); ok && ie.SubCode == 300004 {
+					log.Println(ie.Reason)
+					continue
+				}
 				return err
 			}
 		case models.TransferOut:
@@ -89,6 +99,10 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 				ForceCreatedAt:        v.CreatedAt.Unix(),
 			})
 			if err != nil {
+				if ie, ok := ierr.FromError(err); ok && ie.SubCode == 300004 {
+					log.Println(ie.Reason)
+					continue
+				}
 				return err
 			}
 		}
