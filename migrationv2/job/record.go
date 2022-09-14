@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 	"video/migrationv2/db"
 	"video/migrationv2/models"
 
@@ -31,11 +30,10 @@ func NewRecordJob(db *db.DB, tran tapi.BankAccountClient) *RecordJob {
 	}
 }
 
-func (rj *RecordJob) DealAndInsert(ctx context.Context, data any) error {
-	trans, _ := data.([]*models.BankAccountTransaction)
-	for i, v := range trans {
+func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccountTransaction) error {
+	for i, v := range data {
 		fmt.Println(i)
-		time.Sleep(time.Millisecond * 150)
+		// time.Sleep(time.Millisecond * 150)
 		switch v.Operation {
 		case models.Sale:
 			rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{
@@ -88,19 +86,14 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data any) error {
 	return nil
 }
 
-func (wfj *RecordJob) Read(ctx context.Context, page int64, min, max models.ID) (any, error) {
+func (wfj *RecordJob) Read(ctx context.Context, lastID models.ID) ([]*models.BankAccountTransaction, error) {
 	col := wfj.WfDb.Collection(wfj.LogColl)
 	logs := []*models.Log{}
 	filter := models.M{
-		"opType": models.M{
-			"$nin": []string{"initAccount"},
-		},
-		"$and": models.A{
-			models.M{"_id": models.M{"$gte": min}},
-			models.M{"_id": models.M{"$lt": max}},
-		},
+		"opType": models.M{"$ne": "initAccount"},
+		"_id":    models.M{"$gt": lastID},
 	}
-	cur, err := col.Find(ctx, filter, options.Find().SetSort(bson.D{bson.E{Key: "_id", Value: 1}}).SetSkip(page*PageSize).SetLimit(PageSize))
+	cur, err := col.Find(ctx, filter, options.Find().SetSort(bson.D{bson.E{Key: "_id", Value: 1}}).SetLimit(PageSize))
 	if err != nil {
 		return nil, err
 	}
@@ -121,15 +114,14 @@ func (wfj *RecordJob) Read(ctx context.Context, page int64, min, max models.ID) 
 	return res, err
 }
 
-func (wfj *RecordJob) Count(ctx context.Context, min, max models.ID) (int64, error) {
+func (wfj *RecordJob) Count(ctx context.Context, lastId models.ID) (int64, error) {
 	col := wfj.WfDb.Collection(wfj.LogColl)
 	filter := models.M{
 		"opType": models.M{
 			"$nin": []string{"initAccount"},
 		},
-		"$and": models.A{
-			models.M{"_id": models.M{"$gte": min}},
-			models.M{"_id": models.M{"$lt": max}},
+		"_id": models.M{
+			"$gte": lastId,
 		},
 	}
 	count, err := col.CountDocuments(ctx, filter)

@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math"
+	"time"
 	"video/migrationv2/db"
 	"video/migrationv2/job"
-	pjob "video/migrationv2/job"
 	"video/migrationv2/models"
 	"video/migrationv2/svc"
 
@@ -15,9 +14,9 @@ import (
 )
 
 type SyncJob interface {
-	DealAndInsert(ctx context.Context, date any) error
-	Read(ctx context.Context, page int64, min, max models.ID) (any, error)
-	Count(ctx context.Context, min, max models.ID) (int64, error)
+	DealAndInsert(ctx context.Context, date []*models.BankAccountTransaction) error
+	Read(ctx context.Context, lastId models.ID) ([]*models.BankAccountTransaction, error)
+	Count(ctx context.Context, lastId models.ID) (int64, error)
 }
 
 type SyncManager struct {
@@ -53,32 +52,24 @@ func (sm *SyncManager) RunSyncWorker(ctx context.Context) {
 }
 
 func (sm *SyncManager) RunOneJob(ctx context.Context, job SyncJob) {
-	ids := []models.ID{primitive.NilObjectID, primitive.NewObjectID()}
-	count, err := job.Count(ctx, ids[len(ids)-2], ids[len(ids)-1])
-	if err != nil {
-		log.Println(err)
-		panic(err)
-	}
-
-	for count != 0 {
-		for i := 0; i < int(math.Ceil(float64(count)/float64(pjob.PageSize))); i++ {
-			fmt.Println("*******************************************************************", i, i, i)
-			data, err := job.Read(ctx, int64(i), ids[len(ids)-2], ids[len(ids)-1])
-			if err != nil {
-				log.Println(err.Error())
-				return
-			}
-			err = job.DealAndInsert(ctx, data)
-			if err != nil {
-				log.Println(err.Error())
-				return
-			}
-		}
-		ids = append(ids, primitive.NewObjectID())
-		count, err = job.Count(ctx, ids[len(ids)-2], ids[len(ids)-1])
+	lastID := primitive.NilObjectID
+	for {
+		fmt.Println(lastID.Hex())
+		data, err := job.Read(ctx, lastID)
 		if err != nil {
-			log.Println(err)
-			panic(err)
+			log.Println(err.Error())
+			return
+		}
+		if len(data) == 0 {
+			log.Printf("lastID=%s 没有新数据产生\r\n", lastID.Hex())
+			time.Sleep(1 * time.Second) // 休眠1s等待新数据产生
+		}
+		lastID = data[len(data)-1].ID
+
+		err = job.DealAndInsert(ctx, data)
+		if err != nil {
+			log.Println(err.Error())
+			return
 		}
 	}
 }
