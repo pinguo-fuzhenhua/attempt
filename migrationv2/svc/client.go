@@ -2,8 +2,10 @@ package svc
 
 import (
 	"context"
+	"google.golang.org/grpc/keepalive"
 	"log"
 	"time"
+
 	"video/migrationv2/db"
 
 	kgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
@@ -36,6 +38,14 @@ func newConnection(addr string) (*grpc.ClientConn, error) {
 		context.TODO(),
 		kgrpc.WithEndpoint(addr),
 		kgrpc.WithTimeout(60*time.Second),
+		kgrpc.WithOptions(
+			grpc.WithKeepaliveParams(
+				keepalive.ClientParameters{
+					Time:    time.Second * 3,
+					Timeout: time.Second * 3,
+				},
+			),
+		),
 	)
 	if err != nil {
 		log.Fatalln(err.Error())
