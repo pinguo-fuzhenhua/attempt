@@ -13,7 +13,7 @@ import (
 func main() {
 	copt := db.InitConnOpt(flag.NewFlagSet(os.Args[0], flag.ExitOnError))
 	db.InitConnection(copt)
-	db := db.NewDb("waterfalls", "transaction-svc")
+	db := db.NewDb("waterfalls")
 	clientSet, close := svc.NewClientSet(copt)
 	sm := migration.NewSyncManager(db, clientSet)
 	ctx, cancel := context.WithCancel(context.Background())

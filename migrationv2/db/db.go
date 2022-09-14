@@ -72,7 +72,7 @@ type DB struct {
 	WfDb, TranDb *mongo.Database
 }
 
-func NewDb(wfDbName, tranDbName string) *DB {
+func NewDb(wfDbName string) *DB {
 	wfDb := WaterfallClient.Database(wfDbName)
 	return &DB{
 		WfDb: wfDb,

@@ -37,79 +37,6 @@ const (
 	POTTransfer PointsOperateType = "transfer"
 )
 
-// func (l *Log) ToTransaction() (*BankAccountTransaction, error) {
-// 	bankType, opType, err := l.getBankTypeAndOpType()
-// 	if err != nil {
-// 		return nil
-// 	}
-
-// 	return &BankAccountTransaction{
-// 		Transaction: &Transaction{
-// 			ID:                  l.ID,
-// 			OriginTransactionID: l.buildTransID(PointsOperateType(l.getOperation()), l.ID.Hex(), "", l.UserID),
-// 			TransactionID:       "",
-// 			UserID:              l.UserID,
-// 			DeviceID:            l.DeviceID,
-// 			Comment:             l.Comment,
-// 			Scope:               strings.ToLower(l.AppName),
-// 			CreatedAt:           l.TS,
-// 			UpdatedAt:           l.TS,
-// 		},
-// 		BankType:  BankType(bankType),
-// 		Amount:    l.Amount,
-// 		Reason:    l.OpType,
-// 		Operation: BankAccountOperation(opType),
-// 		TransID:   l.TransID,
-// 	}
-// }
-
-// func (l *Log) getBankTypeAndOpType() (string, string, error) {
-// 	var (
-// 		bankType string
-// 		opType   string
-// 	)
-// 	switch strings.ToLower(l.OpType) {
-// 	case "helpconvert", "fps", "speed", "rsmb", "clear":
-// 		switch l.OpType {
-// 		case "helpconvert":
-// 			opType = string(Reload)
-// 		default:
-// 			opType = string(Sale)
-// 		}
-// 		bankType = l.DataChannel
-// 	case "purchasepreset":
-// 		bankType = string(Juice)
-// 		opType = string(TransferOut)
-// 	case "purchasejuice":
-// 		bankType = string(JuicePurchased)
-// 		opType = string(Reload)
-// 	case "gift", "newcomer":
-// 		bankType = string(JuiceGift)
-// 		opType = string(Reload)
-// 		// TODO 赠送原因sz
-// 	default:
-// 		return "", "", errors.New("无效数据")
-// 	}
-// 	return bankType, opType, nil
-// }
-
-// func (l *Log) getOperation() string {
-// 	operation := ""
-// 	optype := strings.ToLower(l.OpType)
-// 	if strings.Contains(optype, "clear") {
-// 		operation = string(POTSysClear)
-// 	} else if strings.Contains(optype, "preset") {
-// 		operation = string(POTTransfer)
-// 	} else if strings.Contains(optype, "gift") {
-// 		operation = string(POTGift)
-// 	} else if strings.Contains(optype, "purchase") || strings.Contains(optype, "convert") {
-// 		operation = string(POTPurchase)
-// 	} else {
-// 		operation = string(POTConsume)
-// 	}
-// 	return operation
-// }
-
 func (l *Log) ToTransaction() (*BankAccountTransaction, error) {
 	bankType, opType, reason, originalTransactionId, err := l.getBankTypeAndOpType()
 	if err != nil {
@@ -154,7 +81,7 @@ func (l *Log) getBankTypeAndOpType() (bankType, opType, reason, originalTransact
 			// helpCodeConvertClears
 		case "fps", "speed", "rsmb":
 			opType = string(Sale)
-			originalTransactionId = l.buildTransID(POTConsume, l.TransID, "", l.UserID)
+			originalTransactionId = l.buildTransID(POTConsume, l.TransID, l.OpType, l.UserID)
 			reason = l.OpType
 			// POTConsume-l.TransID:l.OpType--l.UserID
 			// reason: l.OpType
