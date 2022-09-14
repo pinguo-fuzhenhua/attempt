@@ -31,12 +31,13 @@ func NewRecordJob(db *db.DB, tran tapi.BankAccountClient) *RecordJob {
 }
 
 func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccountTransaction) error {
+	var err error
 	for i, v := range data {
 		fmt.Println(i)
 		// time.Sleep(time.Millisecond * 150)
 		switch v.Operation {
 		case models.Sale:
-			rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{
+			_, err = rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{
 				Scope:                 v.Scope,
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
@@ -48,7 +49,7 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 				ForceCreatedAt:        v.CreatedAt.Unix(),
 			})
 		case models.Reload:
-			rj.tranClient.Reload(ctx, &tapi.BankOperationRequest{
+			_, err = rj.tranClient.Reload(ctx, &tapi.BankOperationRequest{
 				Scope:                 v.Scope,
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
@@ -69,7 +70,7 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 			if err != nil {
 				log.Println(err)
 			}
-			rj.tranClient.TransferOut(ctx, &tapi.TransferOutRequest{
+			_, err = rj.tranClient.TransferOut(ctx, &tapi.TransferOutRequest{
 				Scope:                 v.Scope,
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
@@ -83,7 +84,7 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 			})
 		}
 	}
-	return nil
+	return err
 }
 
 func (wfj *RecordJob) Read(ctx context.Context, lastID models.ID) ([]*models.BankAccountTransaction, error) {
