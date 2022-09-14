@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"log"
+	"math"
 
 	"video/migrationv2/db"
 	"video/migrationv2/models"
@@ -40,16 +41,12 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 		fmt.Println("v.ID.Hex()", v.ID.Hex())
 		switch v.Operation {
 		case models.Sale:
-			amount := int32(v.Amount)
-			if amount < 0 {
-				amount *= -1
-			}
 			if _, err := rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{
 				Scope:                 v.Scope,
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
 				OriginalTransactionId: v.OriginTransactionID,
-				Amount:                amount,
+				Amount:                int32(math.Abs(float64(v.Amount))),
 				BankType:              string(v.BankType),
 				Reason:                v.Reason,
 				Comment:               v.Comment,
@@ -68,7 +65,7 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
 				OriginalTransactionId: v.OriginTransactionID,
-				Amount:                int32(v.Amount),
+				Amount:                int32(math.Abs(float64(v.Amount))),
 				BankType:              string(v.BankType),
 				Reason:                v.Reason,
 				Comment:               v.Comment,
@@ -95,7 +92,7 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
 				OriginalTransactionId: v.OriginTransactionID,
-				Amount:                -int32(v.Amount),
+				Amount:                int32(math.Abs(float64(v.Amount))),
 				BankType:              string(v.BankType),
 				ToUserId:              counterPart.UserID,
 				Reason:                v.Reason,
