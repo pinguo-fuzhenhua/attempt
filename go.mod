@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/go-kratos/kratos/v2 v2.3.1
+	github.com/pinguo-icc/kratos-library/v2 v2.1.13
 	github.com/pinguo-icc/transaction-svc v0.0.0-20220830013903-81ccbeef2ec6
 	go.mongodb.org/mongo-driver v1.10.0
 	google.golang.org/grpc v1.47.0
@@ -35,7 +36,6 @@ require (
 	github.com/pinguo-icc/bmallsdk/v2 v2.1.15 // indirect
 	github.com/pinguo-icc/go-base/v2 v2.5.16 // indirect
 	github.com/pinguo-icc/go-lib/v2 v2.1.7 // indirect
-	github.com/pinguo-icc/kratos-library/v2 v2.1.13 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
