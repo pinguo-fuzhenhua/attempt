@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	once                               sync.Once
-	WaterfallClient, TransactionClient *mongo.Client
+	once            sync.Once
+	WaterfallClient *mongo.Client
 )
 
 func InitConnection(cfg *ConnCfg) {
-	if WaterfallClient == nil || TransactionClient == nil {
+	if WaterfallClient == nil {
 		once.Do(func() {
 			var err error
 			ctx, _ := context.WithTimeout(context.Background(), time.Duration(cfg.TimeOut)*time.Second)
@@ -29,11 +29,6 @@ func InitConnection(cfg *ConnCfg) {
 				panic(err)
 			}
 
-			TransactionClient, err = mongo.Connect(ctx, options.Client().ApplyURI(cfg.TransactionDsn))
-			if err != nil {
-				log.Fatalf(err.Error())
-				panic(err)
-			}
 		})
 	}
 }
@@ -53,8 +48,8 @@ func (c *ConnCfg) addFlag(f *flag.FlagSet) {
 }
 
 func (c *ConnCfg) validate() error {
-	if c.WaterFallDsn == "" || c.TransactionDsn == "" {
-		return errors.New("waterfall or transaction dns is nil")
+	if c.WaterFallDsn == "" {
+		return errors.New("waterfall dns is nil")
 	}
 	return nil
 }
@@ -79,9 +74,7 @@ type DB struct {
 
 func NewDb(wfDbName, tranDbName string) *DB {
 	wfDb := WaterfallClient.Database(wfDbName)
-	tranDb := TransactionClient.Database(tranDbName)
 	return &DB{
-		WfDb:   wfDb,
-		TranDb: tranDb,
+		WfDb: wfDb,
 	}
 }

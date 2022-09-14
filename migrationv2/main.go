@@ -17,9 +17,8 @@ func main() {
 	clientSet, close := svc.NewClientSet(copt)
 	sm := migration.NewSyncManager(db, clientSet)
 	ctx, cancel := context.WithCancel(context.Background())
-	sm.MainCancel = cancel
 	defer func() {
-		sm.StopSyncWorker()
+		cancel()
 		close()
 		log.Println("---------------shutdown--------------")
 	}()

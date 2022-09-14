@@ -2,6 +2,7 @@ package migration
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math"
 	"video/migrationv2/db"
@@ -54,6 +55,7 @@ func (sm *SyncManager) RunOneJob(ctx context.Context, job SyncJob) {
 		log.Println(err)
 	}
 	for i := 0; i < int(math.Ceil(float64(count)/float64(pjob.PageSize))); i++ {
+		fmt.Println("******************************%d********%d*******%d**********************", i, i, i)
 		data, err := job.Read(ctx, int64(i))
 		if err != nil {
 			log.Println(err.Error())
@@ -64,11 +66,5 @@ func (sm *SyncManager) RunOneJob(ctx context.Context, job SyncJob) {
 			log.Println(err.Error())
 			return
 		}
-	}
-}
-
-func (mcs *SyncManager) StopSyncWorker() {
-	if mcs.MainCancel != nil {
-		mcs.MainCancel()
 	}
 }
