@@ -2,6 +2,10 @@ package job
 
 import (
 	"context"
+	"fmt"
+	"io/fs"
+	"io/ioutil"
+
 	"video/migrationv2/db"
 	"video/migrationv2/models"
 
@@ -11,7 +15,7 @@ import (
 )
 
 const (
-	PageSize = 500
+	PageSize = 2000
 )
 
 type RecordJob struct {
@@ -30,6 +34,8 @@ func NewRecordJob(db *db.DB, tran tapi.BankAccountClient) *RecordJob {
 
 func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccountTransaction) error {
 	for _, v := range data {
+		ioutil.WriteFile("offset.log", []byte(v.ID.Hex()), fs.ModePerm)
+		fmt.Println("v.ID.Hex()", v.ID.Hex())
 		switch v.Operation {
 		case models.Sale:
 			if _, err := rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{

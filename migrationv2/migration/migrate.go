@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
+
 	"video/migrationv2/db"
 	"video/migrationv2/job"
 	"video/migrationv2/models"
@@ -53,6 +55,12 @@ func (sm *SyncManager) RunSyncWorker(ctx context.Context) {
 
 func (sm *SyncManager) RunOneJob(ctx context.Context, job SyncJob) {
 	lastID := primitive.NilObjectID
+	if body, err := os.ReadFile("offset.log"); err == nil {
+		lastID, err = primitive.ObjectIDFromHex(string(body))
+		if err != nil {
+			panic(err)
+		}
+	}
 	for {
 		fmt.Printf("==============  lastID=%s =============", lastID.Hex())
 		data, err := job.Read(ctx, lastID)
