@@ -54,22 +54,21 @@ func (sm *SyncManager) RunSyncWorker(ctx context.Context) {
 func (sm *SyncManager) RunOneJob(ctx context.Context, job SyncJob) {
 	lastID := primitive.NilObjectID
 	for {
-		fmt.Println(lastID.Hex())
+		fmt.Printf("==============  lastID=%s =============", lastID.Hex())
 		data, err := job.Read(ctx, lastID)
 		if err != nil {
-			log.Println(err.Error())
-			return
+			log.Panic("read", err)
 		}
 		if len(data) == 0 {
 			log.Printf("lastID=%s 没有新数据产生\r\n", lastID.Hex())
 			time.Sleep(1 * time.Second) // 休眠1s等待新数据产生
+			continue
 		}
 		lastID = data[len(data)-1].ID
 
 		err = job.DealAndInsert(ctx, data)
 		if err != nil {
-			log.Println(err.Error())
-			return
+			log.Panic("DealAndInsert", err)
 		}
 	}
 }

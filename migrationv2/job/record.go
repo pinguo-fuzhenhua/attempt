@@ -2,8 +2,6 @@ package job
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"video/migrationv2/db"
 	"video/migrationv2/models"
 
@@ -31,13 +29,10 @@ func NewRecordJob(db *db.DB, tran tapi.BankAccountClient) *RecordJob {
 }
 
 func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccountTransaction) error {
-	var err error
-	for i, v := range data {
-		fmt.Println(i)
-		// time.Sleep(time.Millisecond * 150)
+	for _, v := range data {
 		switch v.Operation {
 		case models.Sale:
-			_, err = rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{
+			if _, err := rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{
 				Scope:                 v.Scope,
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
@@ -47,9 +42,12 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 				Reason:                v.Reason,
 				Comment:               v.Comment,
 				ForceCreatedAt:        v.CreatedAt.Unix(),
-			})
+			}); err != nil {
+				return err
+			}
+
 		case models.Reload:
-			_, err = rj.tranClient.Reload(ctx, &tapi.BankOperationRequest{
+			if _, err := rj.tranClient.Reload(ctx, &tapi.BankOperationRequest{
 				Scope:                 v.Scope,
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
@@ -59,7 +57,9 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 				Reason:                v.Reason,
 				Comment:               v.Comment,
 				ForceCreatedAt:        v.CreatedAt.Unix(),
-			})
+			}); err != nil {
+				return err
+			}
 		case models.TransferOut:
 			if v.Amount > 0 {
 				continue
@@ -68,7 +68,7 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 			counterPart := &models.Log{}
 			err := col.FindOne(ctx, models.M{"dataChannel": "juice", "opType": "purchasePreset", "transID": v.TransID, "amount": models.M{"$gt": 0}}).Decode(counterPart)
 			if err != nil {
-				log.Println(err)
+				return err
 			}
 			_, err = rj.tranClient.TransferOut(ctx, &tapi.TransferOutRequest{
 				Scope:                 v.Scope,
@@ -82,9 +82,12 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 				Comment:               v.Comment,
 				ForceCreatedAt:        v.CreatedAt.Unix(),
 			})
+			if err != nil {
+				return err
+			}
 		}
 	}
-	return err
+	return nil
 }
 
 func (wfj *RecordJob) Read(ctx context.Context, lastID models.ID) ([]*models.BankAccountTransaction, error) {
