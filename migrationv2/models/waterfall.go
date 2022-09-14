@@ -10,16 +10,16 @@ import (
 
 type Log struct {
 	ID             primitive.ObjectID `bson:"_id,omitempty"`
-	TS             time.Time          `bson:"ts"`                 //时间戳
-	AppName        string             `bson:"appName"`            //产品名称
-	DataChannel    string             `bson:"dataChannel"`        //数据渠道
-	UserID         string             `bson:"userID,omitempty"`   //用户id
-	DeviceID       string             `bson:"deviceID,omitempty"` //设备id
-	OpType         string             `bson:"opType"`             //操作类型
-	OriginalAmount int64              `bson:"originalAmount"`     //操作前数量
-	Amount         int64              `bson:"amount"`             //操作数量
-	Comment        string             `bson:"comment,omitempty"`  //描述
-	TransID        string             `bson:"transID"`            //保证幂等的ID
+	TS             time.Time          `bson:"ts"`                 // 时间戳
+	AppName        string             `bson:"appName"`            // 产品名称
+	DataChannel    string             `bson:"dataChannel"`        // 数据渠道
+	UserID         string             `bson:"userID,omitempty"`   // 用户id
+	DeviceID       string             `bson:"deviceID,omitempty"` // 设备id
+	OpType         string             `bson:"opType"`             // 操作类型
+	OriginalAmount int64              `bson:"originalAmount"`     // 操作前数量
+	Amount         int64              `bson:"amount"`             // 操作数量
+	Comment        string             `bson:"comment,omitempty"`  // 描述
+	TransID        string             `bson:"transID"`            // 保证幂等的ID
 }
 
 type PointsOperateType string
@@ -51,13 +51,13 @@ func (l *Log) ToTransaction() (*BankAccountTransaction, error) {
 			UserID:              l.UserID,
 			DeviceID:            l.DeviceID,
 			Comment:             l.Comment,
-			Scope:               "VideoBeats", //写死：VideoBeats
+			Scope:               "VideoBeats", // 写死：VideoBeats
 			CreatedAt:           l.TS,
 			UpdatedAt:           l.TS,
 		},
 		BankType:  BankType(bankType),
 		Amount:    l.Amount,
-		Reason:    reason, //用getBankTypeAndOpType返回的
+		Reason:    reason, // 用getBankTypeAndOpType返回的
 		Operation: BankAccountOperation(opType),
 		TransID:   l.TransID,
 	}, nil
@@ -66,7 +66,7 @@ func (l *Log) ToTransaction() (*BankAccountTransaction, error) {
 func (l *Log) getBankTypeAndOpType() (bankType, opType, reason, originalTransactionId string, err error) {
 	switch strings.ToLower(l.OpType) {
 	case "helpconvert", "fps", "speed", "rsmb", "clear":
-		switch l.OpType {
+		switch strings.ToLower(l.OpType) {
 		case "helpconvert":
 			opType = string(Reload)
 			originalTransactionId = l.buildTransID(POTGift, l.TransID, "", l.UserID)
