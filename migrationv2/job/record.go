@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"strings"
 
 	"video/migrationv2/db"
 	"video/migrationv2/models"
@@ -37,11 +38,14 @@ func NewRecordJob(db *db.DB, tran tapi.BankAccountClient) *RecordJob {
 
 func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccountTransaction) error {
 	for _, v := range data {
-		ioutil.WriteFile("offset.log", []byte(v.ID.Hex()), fs.ModePerm)
-		fmt.Println("v.ID.Hex()", v.ID.Hex())
+		fmt.Println("v.ID.Hex()", v.ID.Hex(), "userID", v.UserID)
+		if strings.Index(v.UserID, "-") != -1 {
+			fmt.Println("invalid userID")
+			continue
+		}
 		switch v.Operation {
 		case models.Sale:
-			if _, err := rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{
+			if tx, err := rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{
 				Scope:                 v.Scope,
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
@@ -57,10 +61,12 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 					continue
 				}
 				return err
+			} else {
+				fmt.Println(tx.TransactionId)
 			}
 
 		case models.Reload:
-			if _, err := rj.tranClient.Reload(ctx, &tapi.BankOperationRequest{
+			if tx, err := rj.tranClient.Reload(ctx, &tapi.BankOperationRequest{
 				Scope:                 v.Scope,
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
@@ -76,6 +82,8 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 					continue
 				}
 				return err
+			} else {
+				fmt.Println(tx.TransactionId)
 			}
 		case models.TransferOut:
 			if v.Amount > 0 {
@@ -87,7 +95,7 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 			if err != nil {
 				return err
 			}
-			_, err = rj.tranClient.TransferOut(ctx, &tapi.TransferOutRequest{
+			tx, err := rj.tranClient.TransferOut(ctx, &tapi.TransferOutRequest{
 				Scope:                 v.Scope,
 				UserId:                v.UserID,
 				DeviceId:              v.DeviceID,
@@ -105,8 +113,11 @@ func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccou
 					continue
 				}
 				return err
+			} else {
+				fmt.Println(tx.TransactionId)
 			}
 		}
+		ioutil.WriteFile("offset.log", []byte(v.ID.Hex()), fs.ModePerm)
 	}
 	return nil
 }
