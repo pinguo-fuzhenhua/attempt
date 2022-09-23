@@ -18,7 +18,6 @@ import (
 type SyncJob interface {
 	DealAndInsert(ctx context.Context, date []*models.BankAccountTransaction) error
 	Read(ctx context.Context, lastId models.ID) ([]*models.BankAccountTransaction, error)
-	Count(ctx context.Context, lastId models.ID) (int64, error)
 }
 
 type SyncManager struct {

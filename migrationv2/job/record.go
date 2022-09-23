@@ -2,7 +2,6 @@ package job
 
 import (
 	"context"
-	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"log"
@@ -38,7 +37,7 @@ func NewRecordJob(db *db.DB, tran tapi.BankAccountClient) *RecordJob {
 func (rj *RecordJob) DealAndInsert(ctx context.Context, data []*models.BankAccountTransaction) error {
 	for _, v := range data {
 		ioutil.WriteFile("offset.log", []byte(v.ID.Hex()), fs.ModePerm)
-		fmt.Println("v.ID.Hex()", v.ID.Hex())
+		// fmt.Println("v.ID.Hex()", v.ID.Hex())
 		switch v.Operation {
 		case models.Sale:
 			if _, err := rj.tranClient.Sale(ctx, &tapi.BankOperationRequest{
@@ -137,21 +136,4 @@ func (wfj *RecordJob) Read(ctx context.Context, lastID models.ID) ([]*models.Ban
 		}
 	}
 	return res, err
-}
-
-func (wfj *RecordJob) Count(ctx context.Context, lastId models.ID) (int64, error) {
-	col := wfj.WfDb.Collection(wfj.LogColl)
-	filter := models.M{
-		"opType": models.M{
-			"$nin": []string{"initAccount"},
-		},
-		"_id": models.M{
-			"$gte": lastId,
-		},
-	}
-	count, err := col.CountDocuments(ctx, filter)
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
 }
