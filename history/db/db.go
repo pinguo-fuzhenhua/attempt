@@ -27,7 +27,17 @@ type dbEntity struct {
 	operateEntityCollName  string
 }
 
-var Executor dbEntity
+var (
+	Executor dbEntity
+
+	opType = map[int32]string{
+		1: "Create",
+		2: "Update",
+		3: "Delete",
+		4: "Query",
+		5: "Pack",
+	}
+)
 
 func init() {
 	Executor = dbEntity{
@@ -42,6 +52,26 @@ func (de *dbEntity) Run(ctx context.Context, client *mongo.Client) {
 	db := client.Database(de.dbName)
 	ohColl := db.Collection(de.operateHistoryCollName)
 	eoColl := db.Collection(de.operateEntityCollName)
+	errChan := make(chan error, 5)
+
+	errWg := &sync.WaitGroup{}
+	for k, v := range opType {
+		errWg.Add(1)
+		go func(k int32, v string) {
+			defer errWg.Done()
+			_, err := ohColl.UpdateMany(context.Background(), M{"operateType": k}, M{"$set": M{"operateType": v}})
+			if err != nil {
+				errChan <- err
+			}
+		}(k, v)
+	}
+	errWg.Wait()
+	close(errChan)
+
+	for v := range errChan {
+		log.Println("method=historySplit update operateType,", fmt.Sprintf("err=%s", v.Error()))
+	}
+
 	wg := &sync.WaitGroup{}
 	var ohs []*models.OperateHistory
 	var next int64
@@ -54,11 +84,11 @@ func (de *dbEntity) Run(ctx context.Context, client *mongo.Client) {
 				SetLimit(500),
 		)
 		if err != nil {
-			log.Println("method=historySplite,", fmt.Sprintf("err=%s", err.Error()))
+			log.Println("method=historySplit,", fmt.Sprintf("err=%s", err.Error()))
 		}
 		err = cur.All(ctx, &ohs)
 		if err != nil {
-			log.Println("method=historySplite,", fmt.Sprintf("err=%s", err.Error()))
+			log.Println("method=historySplit,", fmt.Sprintf("err=%s", err.Error()))
 		}
 		count = len(ohs)
 		if count > 0 {
@@ -79,9 +109,9 @@ func (de *dbEntity) Run(ctx context.Context, client *mongo.Client) {
 						OperateType: v.OperateType,
 					})
 				}
-				_, err := eoColl.InsertMany(context.Background(), eos)
+				_, err := eoColl.InsertMany(ctx, eos)
 				if err != nil {
-					log.Println("method=historySplite, func=entityOperate", fmt.Sprintf("err=%s", err.Error()))
+					log.Println("method=historySplit, func=entityOperate", fmt.Sprintf("err=%s", err.Error()))
 				}
 			}(ohs)
 		}
@@ -95,7 +125,7 @@ func (de *dbEntity) Run(ctx context.Context, client *mongo.Client) {
 	}
 	_, err := ohColl.UpdateMany(ctx, M{}, d)
 	if err != nil {
-		log.Println("method=historySplite, func=entityOperate, remove abandoned fields from operate_history", fmt.Sprintf("err=%s", err.Error()))
+		log.Println("method=historySplit, func=entityOperate, remove abandoned fields from operate_history", fmt.Sprintf("err=%s", err.Error()))
 	}
 	log.Printf("======run finished =========== \n\n")
 }
