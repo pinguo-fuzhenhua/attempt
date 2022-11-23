@@ -52,7 +52,7 @@ func (de *dbEntity) Run(ctx context.Context, client *mongo.Client) {
 	db := client.Database(de.dbName)
 	ohColl := db.Collection(de.operateHistoryCollName)
 	eoColl := db.Collection(de.operateEntityCollName)
-	errChan := make(chan error, 5)
+	errChan := make(chan error, len(opType))
 
 	errWg := &sync.WaitGroup{}
 	for k, v := range opType {
